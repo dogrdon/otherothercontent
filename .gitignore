@@ -1,0 +1,5 @@
+*.py[cod]
+*_venv
+data/
+config/
+
