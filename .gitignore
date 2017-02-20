@@ -2,4 +2,5 @@
 *_venv
 data/
 config/
-
+logs/
+.DS_Store
