@@ -4,3 +4,4 @@ data/
 config/
 logs/
 .DS_Store
+*.json
