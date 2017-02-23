@@ -28,6 +28,40 @@ def fetch_sites(PATHTOSITES):
 	return fetched_sites
 
 
+class SessionManager(object):
+	"""A class for managing Selenium Driver sessions.
+
+			
+	"""
+	def __init__(self, 
+				 userAgent="Mozilla/5.0 (Linux; U; Android 2.3.3; en-us; LG-LU3000 Build/GRI40) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1",
+				 dcap=dict(DesiredCapabilities.PHANTOMJS),
+				 driver=None,
+				 logPath="./logs/ghostdriver.log"):
+		super(SessionManager, self).__init__()
+		self.userAgent = userAgent
+		self.dcap = dcap
+		self.logPath = logPath
+		self.dcap['phantomjs.page.settings.userAgent'] = userAgent
+		self.driver = webdriver.PhantomJS(desired_capabilities=self.dcap, service_log_path=self.logPath)
+		
+
+	@classmethod
+	def requestParser(self, html=self.driver.page_source):
+		"""Function to input html and get out a BeautifulSoup Parser
+		
+		Provide the driver.page_source in your SessionManager to get
+		back a parser to navigate the HTML returned from your request
+		
+		Keyword Arguments:
+			html {[type]} -- [description] (default: {driver.page_source})
+		
+		Returns:
+			[type] -- [description]
+		"""
+
+		self.html = html
+		return BeautifulSoup(html, 'html_parser')
 
 
 
@@ -35,20 +69,18 @@ def fetch_sites(PATHTOSITES):
 if __name__ == '__main__':
 
 	RESOURCES = sys.argv[1]
-	USERAGENT_STRING = "Mozilla/5.0 (Linux; U; Android 2.3.3; en-us; LG-LU3000 Build/GRI40) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1"
 	ARTICLES_MAX = 3
-	dcap = dict(DesiredCapabilities.PHANTOMJS)
-	dcap['phantomjs.page.settings.userAgent'] = USERAGENT_STRING
-	driver = webdriver.PhantomJS(desired_capabilities=dcap, service_log_path="./logs/ghostdriver.log")
-
 	targets = fetch_sites(RESOURCES)
 	
+	initialDriver = SessionManager()
+
 	for target in targets:
 		# do the stuff to extract the things
-		driver.get(target['site'])
-		soup = BeautifulSoup(driver.page_source, 'html_parser')
+		initialDriver.driver.get(target['site'])
+		soup = initialDriver.requestParser()
 		articles = [i.attrs['href'] for i in soup.select(target['articles_selector'])[0:ARTICLES_MAX]]
 
+	articleDriver = SessionManager()
+	
 	for a in articles:
-
-		# extract.... design this better
+		pass
