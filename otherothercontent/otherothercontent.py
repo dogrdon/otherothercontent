@@ -4,7 +4,6 @@
 # standard libs
 import csv
 import sys
-import time
 
 # selenium for rendering
 from selenium import webdriver
@@ -47,7 +46,6 @@ def getArticleData(article):
     hlSel = article['']
     imgSel = article['']
     linkSel = article['']
-    pass
 
 class SessionManager(object):
     """A class for managing Selenium Driver sessions.
@@ -59,11 +57,11 @@ class SessionManager(object):
                  userAgent="Mozilla/5.0 (Linux; U; Android 2.3.3; en-us; LG-LU3000 Build/GRI40) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1",
                  dcap=dict(DesiredCapabilities.PHANTOMJS),
                  driver=None,
-                 logPath="./logs/ghostdriver_{}.log"):
+                 logPath="./logs/ghostdriver.log"):
         super(SessionManager, self).__init__()
         self.userAgent = userAgent
         self.dcap = dcap
-        self.logPath = logPath.format(str(int(time.time())))
+        self.logPath = logPath
         self.dcap['phantomjs.page.settings.userAgent'] = userAgent
         self.driver = webdriver.PhantomJS(
             desired_capabilities=self.dcap, service_log_path=self.logPath)
@@ -78,10 +76,10 @@ class SessionManager(object):
         back a parser to navigate the HTML returned from your request
 
         Keyword Arguments:
-                html {[selenium webdriver page_source]} -- [html page source returned from selenium webdriver.page_source] (default: {driver.page_source})
+                html {[type]} -- [description] (default: {driver.page_source})
 
         Returns:
-                [BeautifulSoup instance] -- [html parsed by beautiful soup]
+                [type] -- [description]
         """
 
         self.html = self.driver.page_source
@@ -102,5 +100,8 @@ if __name__ == '__main__':
 
     print results
     
-  
+    #p = Pool(WORKERS_MAX)
+    #esults - p.map(getArticleData, articles)
+    #articleDriver = SessionManager()
+
 
