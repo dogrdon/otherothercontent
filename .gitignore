@@ -1,7 +1,11 @@
 *.py[cod]
+__pycache__
+.cache
+
 *_venv
 data/
 config/
 logs/
 .DS_Store
 *.json
+

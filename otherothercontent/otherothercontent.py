@@ -39,8 +39,10 @@ def checkArticleURL(site, link):
         return link
     else:
         return urljoin(site,link)
-        
+
 def getArticles(target):
+    ARTICLES_MAX = 3
+
     articles = {}
     site = target['site']
     host = urlparse(site).netloc
@@ -105,7 +107,6 @@ class SessionManager(object):
 if __name__ == '__main__':
 
     RESOURCES = sys.argv[1]
-    ARTICLES_MAX = 3
     WORKERS_MAX = 3
     targets = fetchSiteGuide(RESOURCES)
 
