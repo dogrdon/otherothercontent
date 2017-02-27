@@ -1,14 +1,13 @@
 site,farm,articles_selector,contents_selector,content_hl,content_link,content_img
 http://bleacherreport.com,outbrain,div.trendingArticles ol li div.articleContent a,ul.ob-widget-items-container li a,span.ob-rec-text !title,!href,img.ob-rec-image !src
 http://nydailynews.com/news,taboola,section.c1 div.rtw a,"div.trc_rbox_container div[data-item-syndicated=""true""",a.item-label-href !title,a.item-label-href !href,!data-item-thumb
-http://tmz.com,taboola,div.featured-stories-widget li.story figcaption a,"div.trc_rbox_container div[data-item-syndicated=""true""",a.item-label-href !title,a.item-label-href !href,!data-item-thumb
-http://examiner.com,taboola,div#ex_taxonomy--ex_taxonomy_popular_articles_global ul li a,"div.trc_rbox_container div[data-item-syndicated=""true""]",a.item-label-href !title,a.item-label-href !href,!data-item-thumb
+http://tmz.com,taboola,div.featured-stories-widget div.teaser-banner-image a,"div.trc_rbox_container div[data-item-syndicated=""true""",a.item-label-href !title,a.item-label-href !href,!data-item-thumb
 http://nbcnews.com,taboola,section#top-stories-section div.dycontent div.story-link_default a,"div.trc_rbox_container div[data-item-syndicated=""true""]",a.item-label-href !title,a.item-label-href !href,!data-item-thumb
-http://theblaze.com,taboola,ul#tblz_ps_tab_popular a.tblz_ps_title,"div.trc_rbox_container div[data-item-syndicated=""true""]",a.item-label-href !title,a.item-label-href !href,!data-item-thumb
+http://theblaze.com,taboola,section.home-feeds article.article a.feed-link,"div.trc_rbox_container div[data-item-syndicated=""true""]",a.item-label-href !title,a.item-label-href !href,!data-item-thumb
 http://tpnn.com,revcontent,section#be-must-read-widget-2 p.article a,div.rc-row div.rc-item div.rc-item-wrapper,a.rc-cta !title,a.rc-cta !href,div.rc-photo !style
 http://redorbit.com,revcontent,ul.featured-posts-list li a,div.rc-row div.rc-item div.rc-item-wrapper,a.rc-cta !title,a.rc-cta !href,div.rc-photo !style
-http://worldstarhiphop.com/videos/,revcontent,div.carousel div.slide a,div.rc-row div.rc-item div.rc-item-wrapper,a.rc-cta !title,a.rc-cta !href,div.rc-photo !style
+http://worldstarhiphop.com/videos/,revcontent,div.slide a,div.rc-row div.rc-item div.rc-item-wrapper,a.rc-cta !title,a.rc-cta !href,div.rc-photo !style
 http://www.infowars.com/,revcontent,section.featured-stories div.article-content h3 a,div.rc-row div.rc-item div.rc-item-wrapper,a.rc-cta !title,a.rc-cta !href,div.rc-photo !style
 http://www.salon.com,outbrain,div.recentColumn div.priority article.story a,ul.ob-widget-items-container li a,span.ob-rec-text !title,!href,img.ob-rec-image !src
-http://www.huffingtonpost.com/,taboola,div#center_entries_container div.entry h2 a,"div.trc_rbox_container div[data-item-syndicated=""true""]",a.item-label-href !title,a.item-label-href !href,!data-item-thumb
+http://www.huffingtonpost.com/,taboola,div.middle-rail div.card__content a,"div.trc_rbox_container div[data-item-syndicated=""true""]",a.item-label-href !title,a.item-label-href !href,!data-item-thumb
 http://www.rt.com,taboola,ul.main-promobox__list li div.main-promobox__heading a,"div.trc_rbox_container div[data-item-syndicated=""true""]",a.item-label-href !title,a.item-label-href !href,!data-item-thumb

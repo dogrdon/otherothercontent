@@ -5,6 +5,7 @@
 import csv
 import sys
 import time
+from urlparse import urlparse, urljoin
 
 # selenium for rendering
 from selenium import webdriver
@@ -33,12 +34,20 @@ def fetchSiteGuide(PATHTOSITEGUIDE):
 
     return fetched_sites
 
+def checkArticleURL(site, link):
+    if link.startswith(site):
+        return link
+    else:
+        return urljoin(site,link)
+        
 def getArticles(target):
     articles = {}
-    initialDriver = SessionManager()
+    site = target['site']
+    host = urlparse(site).netloc
+    initialDriver = SessionManager(host=host)
     initialDriver.driver.get(target['site'])
     soup = initialDriver.requestParsed()
-    articles[target['site']] = [i.attrs['href'] for i in soup.select(
+    articles[site] = [checkArticleURL(site,i.attrs['href']) for i in soup.select(
         target['articles_selector'])[0:ARTICLES_MAX]]
     del initialDriver
     return articles
@@ -56,17 +65,21 @@ class SessionManager(object):
     """
 
     def __init__(self,
-                 userAgent="Mozilla/5.0 (Linux; U; Android 2.3.3; en-us; LG-LU3000 Build/GRI40) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1",
+                 userAgent="Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36",
                  dcap=dict(DesiredCapabilities.PHANTOMJS),
                  driver=None,
-                 logPath="./logs/ghostdriver_{}.log"):
+                 host='',
+                 bwidth=1400,
+                 bheight=1000,
+                 logPath="./logs/ghostdriver_{0}_{1}.log"):
         super(SessionManager, self).__init__()
         self.userAgent = userAgent
         self.dcap = dcap
-        self.logPath = logPath.format(str(int(time.time())))
+        self.logPath = logPath.format(host, str(int(time.time())))
         self.dcap['phantomjs.page.settings.userAgent'] = userAgent
         self.driver = webdriver.PhantomJS(
             desired_capabilities=self.dcap, service_log_path=self.logPath)
+        self.driver.set_window_size(bwidth,bheight)
 
     def __del__(self):
         self.driver.quit()
