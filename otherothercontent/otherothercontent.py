@@ -3,9 +3,11 @@
 
 # standard libs
 import csv
+import json
 import sys
 import time
 from urlparse import urlparse, urljoin
+import pickle
 
 # selenium for rendering
 from selenium import webdriver
@@ -46,20 +48,29 @@ def getArticles(target):
     articles = {}
     site = target['site']
     host = urlparse(site).netloc
-    initialDriver = SessionManager(host=host)
-    initialDriver.driver.get(target['site'])
-    soup = initialDriver.requestParsed()
+    articleDriver = SessionManager(host=host)
+    articleDriver.driver.get(target['site'])
+    soup = articleDriver.requestParsed()
     articles[site] = [checkArticleURL(site,i.attrs['href']) for i in soup.select(
         target['articles_selector'])[0:ARTICLES_MAX]]
-    del initialDriver
+    del articleDriver
     return articles
 
-def getArticleData(article):
-    hlSel = article['']
-    imgSel = article['']
-    linkSel = article['']
-    pass
+def getArticleData(articles_pkg):
+    contents = articles_pkg['contents_selector']
+    hlSel = articles_pkg['content_hl']
+    imgSel = article_pkg['content_img']
+    linkSel = article_pkg['content_link']
+    articles = article_pkg['articles']
+    output = []
+    contentDriver = SessionManager()
 
+    for article in articles:
+        contentDriver.driver.get(article)
+        soup = contentDriver.requestParsed()
+        content_soup = soup.select(contents)
+        '''get the rest'''
+    
 class SessionManager(object):
     """A class for managing Selenium Driver sessions.
 
@@ -110,11 +121,23 @@ if __name__ == '__main__':
     WORKERS_MAX = 3
     targets = fetchSiteGuide(RESOURCES)
 
+    #use workers to grab new articles
+    ap = Pool(WORKERS_MAX)
+    articleResults = ap.map(getArticles, targets)
+    print articleResults
+    with open('./notes/tmp_articles_sample.json', 'w') as out:
+        json.dump(articleResults, out, indent=4)
+    ap.close()
 
-    p = Pool(WORKERS_MAX)
-    results = p.map(getArticles, targets)
+    #if something goes wrong, we don't want to have to do that again
+    pickle.dumps(articleResulsts, open('.tmp_store/tmp_articles_store.p'))
 
-    print results
-    
-  
+    for articles in articleResults:
+        for target in targets:
+            if target['site'] == list(articles.keys())[0]:
+                target['articles'] = articles[target['site']]
+
+
+    ctp = Pool(WORKERS_MAX)
+    contentResults = ctp.map(getContent, targets)
 
