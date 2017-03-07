@@ -56,12 +56,20 @@ def getArticles(target):
     del articleDriver
     return articles
 
+def _defineSel(selector):
+    return [s.strip() for s in selector.split('!') if s != '']
+
+
 def getArticleData(articles_pkg):
     contents = articles_pkg['contents_selector']
-    hlSel = articles_pkg['content_hl']
-    imgSel = article_pkg['content_img']
-    linkSel = article_pkg['content_link']
-    articles = article_pkg['articles']
+    articles = articles_pkg['articles']
+
+    hlSel = _defineSel(articles_pkg['content_hl'])
+    imgSel = _defineSel(articles_pkg['content_img'])
+    linkSel = _defineSel(articles_pkg['content_link'])
+    provider = articles_pkg['farm']
+    source = articles_pkg['site']
+    
     output = []
     contentDriver = SessionManager()
 
@@ -69,7 +77,20 @@ def getArticleData(articles_pkg):
         contentDriver.driver.get(article)
         soup = contentDriver.requestParsed()
         content_soup = soup.select(contents)
-        '''get the rest'''
+        if content_soup != []:
+            try:
+                for c in content_soup:
+
+                    hl = c.attrs[hlSel[0]] if hlSel < 2 else c.select(hlSel[0])[0].attrs[hlSel[1]]
+                    ln = c.attrs[linkSel[0]] if linkSel < 2 else c.select(linkSel[0])[0].attrs[linkSel[1]]
+                    img = c.attrs[imgSel[0]] if imgSel < 2 else c.select(imgSel[0])[0].attrs[imgSel[1]]
+
+                    output.append({'headline':hl, 'link':ln, 'img':img, "provider":provider, "source":source})
+            except Exception as e:
+                print "Could not get contents of these native ads on {} - {}: {}".format(source, article, e)
+
+    return output
+
     
 class SessionManager(object):
     """A class for managing Selenium Driver sessions.
@@ -130,7 +151,7 @@ if __name__ == '__main__':
     ap.close()
 
     #if something goes wrong, we don't want to have to do that again
-    pickle.dumps(articleResulsts, open('.tmp_store/tmp_articles_store.p'))
+    pickle.dump(articleResults, open('./tmp_store/tmp_articles_store.p', 'wb'))
 
     for articles in articleResults:
         for target in targets:
@@ -139,5 +160,6 @@ if __name__ == '__main__':
 
 
     ctp = Pool(WORKERS_MAX)
-    contentResults = ctp.map(getContent, targets)
+    contentResults = ctp.map(getArticleData, targets)
 
+    print contentResults
