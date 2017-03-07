@@ -85,6 +85,9 @@ def getArticleData(articles_pkg):
                     ln = c.attrs[linkSel[0]] if linkSel < 2 else c.select(linkSel[0])[0].attrs[linkSel[1]]
                     img = c.attrs[imgSel[0]] if imgSel < 2 else c.select(imgSel[0])[0].attrs[imgSel[1]]
 
+                    if 'background' in img:
+                        img = img[img.find("(")+1:img.find(")")] # hack to extract revcontent img urls
+
                     output.append({'headline':hl, 'link':ln, 'img':img, "provider":provider, "source":source})
             except Exception as e:
                 print "Could not get contents of these native ads on {} - {}: {}".format(source, article, e)
