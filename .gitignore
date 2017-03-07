@@ -8,4 +8,4 @@ config/
 logs/
 .DS_Store
 *.json
-
+tmp_store/
