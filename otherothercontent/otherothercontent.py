@@ -104,6 +104,7 @@ def getArticleData(articles_pkg):
                     output.append({'headline':hl, 'link':ln, 'img':img, "provider":provider, "source":source})
             except Exception as e:
                 print "Could not get contents of these native ads on {} - {}: {}".format(source, article, e)
+                print content_soup
 
     return output
 
