@@ -6,8 +6,9 @@ import csv
 import json
 import sys
 import time
-from urlparse import urlparse, urljoin
+from urlparse import urlparse, urljoin, parse_qs
 import pickle
+import requests
 
 # selenium for rendering
 from selenium import webdriver
@@ -59,6 +60,15 @@ def getArticles(target):
 def _defineSel(selector):
     return [s.strip() for s in selector.split('!') if s != '']
 
+def _getFinalURL(url):
+    if url.startswith('//'):
+        url = 'http:{}'.format(url)
+    res = requests.get(url)
+    if res.status_code == 200:
+        return res.url
+    else:
+        return url
+
 
 def getArticleData(articles_pkg):
     contents = articles_pkg['contents_selector']
@@ -86,7 +96,10 @@ def getArticleData(articles_pkg):
                     img = c.attrs[imgSel[0]] if imgSel < 2 else c.select(imgSel[0])[0].attrs[imgSel[1]]
 
                     if 'background' in img:
-                        img = img[img.find("(")+1:img.find(")")] # hack to extract revcontent img urls
+                        img = parse_qs(urlparse(img[img.find("(")+1:img.find(")")]).query)['url'][0] # hack to extract revcontent img urls
+                    if 'trends.revcontent' in ln:
+                        ln = _getFinalURL(ln)
+
 
                     output.append({'headline':hl, 'link':ln, 'img':img, "provider":provider, "source":source})
             except Exception as e:
