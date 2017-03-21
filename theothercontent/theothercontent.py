@@ -6,7 +6,7 @@ import csv
 import json
 import sys
 import time
-from urlparse import urlparse, urljoin, parse_qs
+from urllib.parse import urlparse, urljoin, parse_qs
 import pickle
 import requests
 
@@ -91,9 +91,9 @@ def getArticleData(articles_pkg):
             try:
                 for c in content_soup:
 
-                    hl = c.attrs[hlSel[0]] if hlSel < 2 else c.select(hlSel[0])[0].attrs[hlSel[1]]
-                    ln = c.attrs[linkSel[0]] if linkSel < 2 else c.select(linkSel[0])[0].attrs[linkSel[1]]
-                    img = c.attrs[imgSel[0]] if imgSel < 2 else c.select(imgSel[0])[0].attrs[imgSel[1]]
+                    hl = c.attrs[hlSel[0]] if len(hlSel) < 2 else c.select(hlSel[0])[0].attrs[hlSel[1]]
+                    ln = c.attrs[linkSel[0]] if len(linkSel) < 2 else c.select(linkSel[0])[0].attrs[linkSel[1]]
+                    img = c.attrs[imgSel[0]] if len(imgSel) < 2 else c.select(imgSel[0])[0].attrs[imgSel[1]]
 
                     if 'background' in img:
                         img = parse_qs(urlparse(img[img.find("(")+1:img.find(")")]).query)['url'][0] # hack to extract revcontent img urls
@@ -103,9 +103,9 @@ def getArticleData(articles_pkg):
 
                     output.append({'headline':hl, 'link':ln, 'img':img, "provider":provider, "source":source})
             except Exception as e:
-                print "Could not get contents of these native ads on {} - {}: {}".format(source, article, e)
-                print content_soup
-
+                print("Could not get contents of these native ads on {0} - {1}: {2}".format(source, article, e))
+        else:
+            print("content soup was empty for {}".format(source))
     return output
 
     
@@ -162,7 +162,7 @@ if __name__ == '__main__':
     #use workers to grab new articles
     ap = Pool(WORKERS_MAX)
     articleResults = ap.map(getArticles, targets)
-    print articleResults
+    print(articleResults)
     with open('./notes/tmp_articles_sample.json', 'w') as out:
         json.dump(articleResults, out, indent=4)
     ap.close()
@@ -179,4 +179,4 @@ if __name__ == '__main__':
     ctp = Pool(WORKERS_MAX)
     contentResults = ctp.map(getArticleData, targets)
 
-    print contentResults
+    print(contentResults)
