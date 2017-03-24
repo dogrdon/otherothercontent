@@ -57,6 +57,15 @@ def getArticles(target):
     del articleDriver
     return articles
 
+def downloadImage(url, path):
+    #image = 
+    #path = 
+    r = requests.get(url)
+    if r.status_code == 200:
+        with open(path, 'wb') as i:
+            for chunk in r:
+                i.write(chunk)
+
 def _defineSel(selector):
     return [s.strip() for s in selector.split('!') if s != '']
 
