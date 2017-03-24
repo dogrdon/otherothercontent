@@ -9,4 +9,8 @@ def test_getArticles():
 	data = theothercontent.fetchSiteGuide(GUIDE)
 	for i in data:
 		result = theothercontent.getArticles(i)
-		assert result.values()[0] is not []
+		assert list(result.values())[0] is not []
+
+def test_getArticleData():
+	pass
+

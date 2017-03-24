@@ -105,7 +105,7 @@ def getArticleData(articles_pkg):
             except Exception as e:
                 print("Could not get contents of these native ads on {0} - {1}: {2}".format(source, article, e))
         else:
-            print("content soup was empty for {}".format(source))
+            print("content soup was empty for {} - {}".format(source, article))
     return output
 
     
@@ -162,13 +162,13 @@ if __name__ == '__main__':
     #use workers to grab new articles
     ap = Pool(WORKERS_MAX)
     articleResults = ap.map(getArticles, targets)
-    print(articleResults)
+
     with open('./notes/tmp_articles_sample.json', 'w') as out:
         json.dump(articleResults, out, indent=4)
     ap.close()
 
     #if something goes wrong, we don't want to have to do that again
-    pickle.dump(articleResults, open('./tmp_store/tmp_articles_store.p', 'wb'))
+    #pickle.dump(articleResults, open('./tmp_store/tmp_articles_store.p', 'wb'))
 
     for articles in articleResults:
         for target in targets:
