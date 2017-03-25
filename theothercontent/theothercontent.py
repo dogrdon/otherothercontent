@@ -9,6 +9,8 @@ import time
 from urllib.parse import urlparse, urljoin, parse_qs
 import pickle
 import requests
+import hashlib
+import imghdr
 
 # selenium for rendering
 from selenium import webdriver
@@ -57,15 +59,6 @@ def getArticles(target):
     del articleDriver
     return articles
 
-def downloadImage(url, path):
-    #image = 
-    #path = 
-    r = requests.get(url)
-    if r.status_code == 200:
-        with open(path, 'wb') as i:
-            for chunk in r:
-                i.write(chunk)
-
 def _defineSel(selector):
     return [s.strip() for s in selector.split('!') if s != '']
 
@@ -78,6 +71,24 @@ def _getFinalURL(url):
     else:
         return url
 
+def _getImgFormat(url, header):
+    possible_formats = ['jpg', 'gif', 'png', 'jpeg']
+    if header != '':
+        if 'jpeg' in header:
+            return '.jpg'
+        elif 'png' in header:
+            return '.png'
+        elif 'gif' in header:
+            return '.gif'
+        else:
+            print('content-type {} not recognized'.format(header))
+    else:
+        ext = url.split('.')[-1]
+        if ext in possible_formats:
+            return '.{}'.format(ext)
+        else:
+            print('could not find an extension for {}, have a look, for now leaving it without one.'.format(url))
+            return ''        
 
 def getArticleData(articles_pkg):
     contents = articles_pkg['contents_selector']
@@ -124,14 +135,50 @@ def clearDupes(content):
     For now we'll keep same content, different site.
     
     Arguments:
-        content {List} -- A list of dictionaries describing a site and the content returned from it
+        content {List of lists} -- A list of lists of dictionaries describing a site and the content returned from it
     '''
-
+    cleanContent = []
     for c in content:
+        print('incoming dump of {} items'.format(str(len(c))))
         print('removing dupes')
-        # remove dupes
+        deduped = list({i['link']:i for i in c}.values())
+        print('outgoing only {} items'.format(str(len(deduped))))
 
-    return content
+        cleanedContent.append(deduped)
+
+    return cleanContent
+
+def downloadImages(content):
+    '''Taking out cleaned content payload to download all the images locally
+    
+    For each entry that will go in our database, take the image url, make a hash of that (md5 is fine?)
+    and then we'll download the image by that name and add that image id to the record and return the whole thing as a flatmapped list
+    
+    Arguments:
+        content {List of lists} -- A list of lists of dictionaries describing a site and the content returned from it
+    '''
+    imagedContent = []
+    for c in content:
+        for i in c:
+            img_url = i['img']
+            img_id = hashlib.sha1(img_url.encode('utf-8')).hexdigest()
+            r = requests.get(url)
+            img_format = _getImgFormat(img_url, r.headers.get('Content-Type', ''))
+            path = './imgs/{}{}'.format(img_id, img_format)
+            if r.status_code == 200:
+                with open(path, 'wb') as i:
+                    for chunk in r:
+                    i.write(chunk)
+                i['img_file'] = path
+
+            else:
+                print("count not download image for {}".format(img_url))
+                i['img_file'] = ''
+
+            imagedContent.append(i)
+
+    return imagedContent
+
 
     
 class SessionManager(object):
@@ -202,12 +249,17 @@ if __name__ == '__main__':
     # now use workers to grab content data from each article
     contentResults = ctp.map(getArticleData, targets)
 
+    print(contentResults)
+    with open('./notes/contentResults_run3.pickle', 'wb') as cr:
+        pickle.dump(contentResults, cr)
+
     # now that we have everything, let's remove duplicates before storage
-    #forStorage = clearDupes(contentResults)
+    # forImaging = clearDupes(contentResults)
+
+    # lets create a hash for each img location and use that as a filename for the image we'll store, and add the hash on the record
+    # forStorage = downloadImages(contentResults)
 
     # and store it
 
 
-    print(contentResults)
-    with open('./notes/contentResults_run2.pickle', 'wb') as cr:
-        pickle.dump(contentResults, cr)
+
