@@ -117,6 +117,22 @@ def getArticleData(articles_pkg):
             print("content soup was empty for {} - {}".format(source, article))
     return output
 
+def clearDupes(content):
+    '''Given some content that we received, we want to remove dupes
+    
+    Dupes will be defined as both having the same content from the same site
+    For now we'll keep same content, different site.
+    
+    Arguments:
+        content {List} -- A list of dictionaries describing a site and the content returned from it
+    '''
+
+    for c in content:
+        print('removing dupes')
+        # remove dupes
+
+    return content
+
     
 class SessionManager(object):
     """A class for managing Selenium Driver sessions.
@@ -172,20 +188,26 @@ if __name__ == '__main__':
     ap = Pool(WORKERS_MAX)
     articleResults = ap.map(getArticles, targets)
 
-    with open('./notes/tmp_articles_sample.json', 'w') as out:
-        json.dump(articleResults, out, indent=4)
     ap.close()
 
-    #if something goes wrong, we don't want to have to do that again
-    #pickle.dump(articleResults, open('./tmp_store/tmp_articles_store.p', 'wb'))
-
+    # join articles to target output so we have a single package to send for content
     for articles in articleResults:
         for target in targets:
             if target['site'] == list(articles.keys())[0]:
                 target['articles'] = articles[target['site']]
 
 
+
     ctp = Pool(WORKERS_MAX)
+    # now use workers to grab content data from each article
     contentResults = ctp.map(getArticleData, targets)
 
+    # now that we have everything, let's remove duplicates before storage
+    #forStorage = clearDupes(contentResults)
+
+    # and store it
+
+
     print(contentResults)
+    with open('./notes/contentResults_run2.pickle', 'wb') as cr:
+        pickle.dump(contentResults, cr)
