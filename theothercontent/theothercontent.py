@@ -10,7 +10,6 @@ from urllib.parse import urlparse, urljoin, parse_qs
 import pickle
 import requests
 import hashlib
-import imghdr
 
 # selenium for rendering
 from selenium import webdriver
@@ -21,6 +20,9 @@ from bs4 import BeautifulSoup
 
 # multiprocessing for threads
 from multiprocessing import Pool
+
+# what else but mongo for safe keeping
+from connection import MongoConn
 
 
 def fetchSiteGuide(PATHTOSITEGUIDE):
@@ -99,9 +101,10 @@ def getArticleData(articles_pkg):
     linkSel = _defineSel(articles_pkg['content_link'])
     provider = articles_pkg['farm']
     source = articles_pkg['site']
-    
+    article_host = '{}_article'.format(urlparse(source).netloc)
+
     output = []
-    contentDriver = SessionManager()
+    contentDriver = SessionManager(host=article_host)
 
     for article in articles:
         contentDriver.driver.get(article)
@@ -144,7 +147,7 @@ def clearDupes(content):
         deduped = list({i['link']:i for i in c}.values())
         print('outgoing only {} items'.format(str(len(deduped))))
 
-        cleanedContent.append(deduped)
+        cleanContent.append(deduped)
 
     return cleanContent
 
@@ -159,16 +162,18 @@ def downloadImages(content):
     '''
     imagedContent = []
     for c in content:
+        print("Attempting to download {} images".format(str(len(c))))
         for i in c:
+
             img_url = i['img']
             img_id = hashlib.sha1(img_url.encode('utf-8')).hexdigest()
-            r = requests.get(url)
+            r = requests.get(img_url)
             img_format = _getImgFormat(img_url, r.headers.get('Content-Type', ''))
             path = './imgs/{}{}'.format(img_id, img_format)
             if r.status_code == 200:
-                with open(path, 'wb') as i:
+                with open(path, 'wb') as imgbuffer:
                     for chunk in r:
-                    i.write(chunk)
+                        imgbuffer.write(chunk)
                 i['img_file'] = path
 
             else:
@@ -230,6 +235,7 @@ if __name__ == '__main__':
     RESOURCES = sys.argv[1]
     WORKERS_MAX = 3
     targets = fetchSiteGuide(RESOURCES)
+    MONGO = MongoConn('theothercontent', 'contents')
 
     #use workers to grab new articles
     ap = Pool(WORKERS_MAX)
@@ -249,17 +255,19 @@ if __name__ == '__main__':
     # now use workers to grab content data from each article
     contentResults = ctp.map(getArticleData, targets)
 
-    print(contentResults)
-    with open('./notes/contentResults_run3.pickle', 'wb') as cr:
-        pickle.dump(contentResults, cr)
-
     # now that we have everything, let's remove duplicates before storage
-    # forImaging = clearDupes(contentResults)
+    forImaging = clearDupes(contentResults)
 
     # lets create a hash for each img location and use that as a filename for the image we'll store, and add the hash on the record
-    # forStorage = downloadImages(contentResults)
+    forStorage = downloadImages(contentResults)
+
+    print(forStorage)
+    with open('./notes/contentResults_run5_clean.pickle', 'wb') as cr:
+        pickle.dump(forStorage, cr)
 
     # and store it
+    #for s in forStorage:
+    #    MONGO.save(s)
 
 
 
