@@ -12,6 +12,10 @@ class MongoConn(object):
 		self.db = client[database]
 		self.collection = self.db[collection]
 		
-	def save(record):
+	def save_record(self, record):
+		# save one document
 		self.collection.insert_one(record)
 
+	def save_records(self, records):
+		# save one or more documents
+		self.collection.insert_many(records)

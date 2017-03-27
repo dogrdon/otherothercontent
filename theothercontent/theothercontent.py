@@ -10,6 +10,7 @@ from urllib.parse import urlparse, urljoin, parse_qs
 import pickle
 import requests
 import hashlib
+import datetime
 
 # selenium for rendering
 from selenium import webdriver
@@ -129,6 +130,7 @@ def getArticleData(articles_pkg):
                 print("Could not get contents of these native ads on {0} - {1}: {2}".format(source, article, e))
         else:
             print("content soup was empty for {} - {}".format(source, article))
+            continue
     return output
 
 def clearDupes(content):
@@ -180,10 +182,21 @@ def downloadImages(content):
                 print("count not download image for {}".format(img_url))
                 i['img_file'] = ''
 
+            
             imagedContent.append(i)
 
     return imagedContent
 
+def finalizeRecords(records):
+    finalRecords = []
+    for r in records:
+        # add date before we store
+        r['date'] = datetime.datetime.utcnow()
+
+        #get the final url for each link (if redirect)
+        r['final_link'] = _getFinalURL(r['link'])
+        finalRecords.append(r)
+    return finalRecords
 
     
 class SessionManager(object):
@@ -259,15 +272,17 @@ if __name__ == '__main__':
     forImaging = clearDupes(contentResults)
 
     # lets create a hash for each img location and use that as a filename for the image we'll store, and add the hash on the record
-    forStorage = downloadImages(contentResults)
+    withImages = downloadImages(contentResults)
+
+    # finally wrap up with final details
+    forStorage = finalizeRecords(withImages)
 
     print(forStorage)
     with open('./notes/contentResults_run5_clean.pickle', 'wb') as cr:
         pickle.dump(forStorage, cr)
 
     # and store it
-    #for s in forStorage:
-    #    MONGO.save(s)
+    MONGO.save_records(forStorage)
 
 
 
