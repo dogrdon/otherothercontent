@@ -68,10 +68,14 @@ def _defineSel(selector):
 def _getFinalURL(url):
     if url.startswith('//'):
         url = 'http:{}'.format(url)
-    res = requests.get(url)
-    if res.status_code == 200:
-        return res.url
-    else:
+    try:
+        res = requests.get(url)
+        if res.status_code == 200:
+            return res.url
+        else:
+            return url
+    except Exception as e:
+        print("Something went wrong: {}".format(e))
         return url
 
 def _getImgFormat(url, header):
