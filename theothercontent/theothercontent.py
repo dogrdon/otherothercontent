@@ -246,7 +246,7 @@ class SessionManager(object):
 if __name__ == '__main__':
 
     RESOURCES = sys.argv[1]
-    WORKERS_MAX = 3
+    WORKERS_MAX = 5
     targets = fetchSiteGuide(RESOURCES)
     MONGO = MongoConn('theothercontent', 'contents')
 
