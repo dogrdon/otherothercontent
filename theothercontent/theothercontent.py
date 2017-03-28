@@ -76,7 +76,7 @@ def _getFinalURL(url):
             return url
     except Exception as e:
         print("Something went wrong: {}".format(e))
-        return url
+        return 'http://example.com/#failed_to_grab'
 
 def _getImgFormat(url, header):
     possible_formats = ['jpg', 'gif', 'png', 'jpeg']
@@ -168,7 +168,7 @@ def downloadImages(content):
     '''
     imagedContent = []
     for c in content:
-        print("Attempting to download {} images".format(str(len(c))))
+        print("Attempting to download {} images from {} via {}".format(str(len(c)), c[0]['provider'], c[0]['source']))
         for i in c:
 
             img_url = i['img']
@@ -216,12 +216,14 @@ class SessionManager(object):
                  host='',
                  bwidth=1400,
                  bheight=1000,
+                 timeout=30000,
                  logPath="./logs/ghostdriver_{0}_{1}.log"):
         super(SessionManager, self).__init__()
         self.userAgent = userAgent
         self.dcap = dcap
         self.logPath = logPath.format(host, str(int(time.time())))
         self.dcap['phantomjs.page.settings.userAgent'] = userAgent
+        self.dcap['phantomjs.page.settings.resourceTimeout'] = timeout
         self.driver = webdriver.PhantomJS(
             desired_capabilities=self.dcap, service_log_path=self.logPath)
         self.driver.set_window_size(bwidth,bheight)
@@ -272,18 +274,16 @@ if __name__ == '__main__':
     # now use workers to grab content data from each article
     contentResults = ctp.map(getArticleData, targets)
 
-    # now that we have everything, let's remove duplicates before storage
+    # now that we have everything, let's remove duplicates before going any further
     forImaging = clearDupes(contentResults)
 
-    # lets create a hash for each img location and use that as a filename for the image we'll store, and add the hash on the record
+    # next lets create a hash for each img location and use that as a filename for the image we'll store, and add the hash on the record
     withImages = downloadImages(contentResults)
 
-    # finally wrap up with final details
+    # finally wrap up with final details for storing
     forStorage = finalizeRecords(withImages)
 
     print(forStorage)
-    with open('./notes/contentResults_run5_clean.pickle', 'wb') as cr:
-        pickle.dump(forStorage, cr)
 
     # and store it
     MONGO.save_records(forStorage)
