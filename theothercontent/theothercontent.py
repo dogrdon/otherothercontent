@@ -4,13 +4,15 @@
 # standard libs
 import csv
 import json
-import sys
+import sys, os
 import time
 from urllib.parse import urlparse, urljoin, parse_qs
-import pickle
 import requests
 import hashlib
 import datetime
+from signal import signal, SIGALRM, alarm # for timeout on phantomjs
+from functools import wraps # ''
+import errno                # ''
 
 # selenium for rendering
 from selenium import webdriver
@@ -24,6 +26,27 @@ from multiprocessing import Pool
 
 # what else but mongo for safe keeping
 from connection import MongoConn
+
+'''Handling timeouts'''
+
+class TimeoutError(Exception):
+    pass
+
+def timeout(wait_time=30, error_message=os.strerror(errno.ETIME)):
+    def decorator(f):
+        def _make_timeout(signum, frame):
+            print("You timed out: {}".format(error_message))
+
+        def wrapper(*args, **kwargs):
+            signal(SIGALRM, _make_timeout)
+            alarm(wait_time)
+            try:
+                result = f(*args, **kwargs)
+            finally: 
+                alarm(0)
+            return result
+        return wraps(f)(wrapper)
+    return decorator
 
 
 def fetchSiteGuide(PATHTOSITEGUIDE):
@@ -42,13 +65,16 @@ def fetchSiteGuide(PATHTOSITEGUIDE):
 
     return fetched_sites
 
+
 def checkArticleURL(site, link):
     if link.startswith(site):
         return link
     else:
         return urljoin(site,link)
 
+#@timeout(60)
 def getArticles(target):
+    print("Getting Articles")
     ARTICLES_MAX = 3
 
     articles = {}
@@ -65,6 +91,7 @@ def getArticles(target):
 def _defineSel(selector):
     return [s.strip() for s in selector.split('!') if s != '']
 
+#@timeout(30)
 def _getFinalURL(url):
     if url.startswith('//'):
         url = 'http:{}'.format(url)
@@ -97,7 +124,10 @@ def _getImgFormat(url, header):
             print('could not find an extension for {}, have a look, for now leaving it without one.'.format(url))
             return ''        
 
+#@timeout(200)
 def getArticleData(articles_pkg):
+    print("Getting Article Content")
+
     contents = articles_pkg['contents_selector']
     articles = articles_pkg['articles']
 
@@ -112,7 +142,12 @@ def getArticleData(articles_pkg):
     contentDriver = SessionManager(host=article_host)
 
     for article in articles:
-        contentDriver.driver.get(article)
+        try:
+            contentDriver.driver.get(article)
+        except Exception as e:
+            print("Problem getting: {} - {}. Moving on".format(article, e))
+            continue
+        
         soup = contentDriver.requestParsed()
         content_soup = soup.select(contents)
         if content_soup != []:
@@ -168,26 +203,32 @@ def downloadImages(content):
     '''
     imagedContent = []
     for c in content:
-        print("Attempting to download {} images from {} via {}".format(str(len(c)), c[0]['provider'], c[0]['source']))
-        for i in c:
+        if c != []:
+            print("Attempting to download {} images from {} via {}".format(str(len(c)), c[0]['provider'], c[0]['source']))
+            for i in c:
 
-            img_url = i['img']
-            img_id = hashlib.sha1(img_url.encode('utf-8')).hexdigest()
-            r = requests.get(img_url)
-            img_format = _getImgFormat(img_url, r.headers.get('Content-Type', ''))
-            path = './imgs/{}{}'.format(img_id, img_format)
-            if r.status_code == 200:
-                with open(path, 'wb') as imgbuffer:
-                    for chunk in r:
-                        imgbuffer.write(chunk)
-                i['img_file'] = path
+                img_url = i['img']
+                img_id = hashlib.sha1(img_url.encode('utf-8')).hexdigest()
+                try: 
+                    r = requests.get(img_url)
+                except Exception as e:
+                    print("Getting images for {} failed: {}".format(img_url, e))
+                img_format = _getImgFormat(img_url, r.headers.get('Content-Type', ''))
+                path = './imgs/{}{}'.format(img_id, img_format)
+                if r.status_code == 200:
+                    with open(path, 'wb') as imgbuffer:
+                        for chunk in r:
+                            imgbuffer.write(chunk)
+                    i['img_file'] = path
 
-            else:
-                print("count not download image for {}".format(img_url))
-                i['img_file'] = ''
+                else:
+                    print("count not download image for {}".format(img_url))
+                    i['img_file'] = ''
 
-            
-            imagedContent.append(i)
+                
+                imagedContent.append(i)
+        else:
+            print("Nothing to add here because it didn't get anything from the source.")
 
     return imagedContent
 
@@ -216,14 +257,14 @@ class SessionManager(object):
                  host='',
                  bwidth=1400,
                  bheight=1000,
-                 timeout=30000,
+                 #timeout=30000,
                  logPath="./logs/ghostdriver_{0}_{1}.log"):
         super(SessionManager, self).__init__()
         self.userAgent = userAgent
         self.dcap = dcap
         self.logPath = logPath.format(host, str(int(time.time())))
         self.dcap['phantomjs.page.settings.userAgent'] = userAgent
-        self.dcap['phantomjs.page.settings.resourceTimeout'] = timeout
+        #self.dcap['phantomjs.page.settings.resourceTimeout'] = timeout
         self.driver = webdriver.PhantomJS(
             desired_capabilities=self.dcap, service_log_path=self.logPath)
         self.driver.set_window_size(bwidth,bheight)
