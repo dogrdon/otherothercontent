@@ -91,19 +91,21 @@ def getArticles(target):
 def _defineSel(selector):
     return [s.strip() for s in selector.split('!') if s != '']
 
-#@timeout(30)
-def _getFinalURL(url):
+
+def _getFullURL(url):
     if url.startswith('//'):
-        url = 'http:{}'.format(url)
+        return 'http:{}'.format(url)
+    else:
+        return url
+
+
+def _getFinalURL(url):
     try:
         res = requests.get(url)
-        if res.status_code == 200:
-            return res.url
-        else:
-            return url
+        return res.url
     except Exception as e:
-        print("Something went wrong: {}".format(e))
-        return 'http://example.com/#failed_to_grab'
+        print("Something went wrong getting the final URL for {}: {}".format(url, e))
+        return url
 
 def _getImgFormat(url, header):
     possible_formats = ['jpg', 'gif', 'png', 'jpeg']
@@ -161,7 +163,7 @@ def getArticleData(articles_pkg):
                     if 'background' in img:
                         img = parse_qs(urlparse(img[img.find("(")+1:img.find(")")]).query)['url'][0] # hack to extract revcontent img urls
                     if 'trends.revcontent' in ln:
-                        ln = _getFinalURL(ln)
+                        ln = _getFullURL(ln)
 
 
                     output.append({'headline':hl, 'link':ln, 'img':img, "provider":provider, "source":source})
@@ -266,7 +268,12 @@ class SessionManager(object):
         self.dcap['phantomjs.page.settings.userAgent'] = userAgent
         #self.dcap['phantomjs.page.settings.resourceTimeout'] = timeout
         self.driver = webdriver.PhantomJS(
-            desired_capabilities=self.dcap, service_log_path=self.logPath)
+            desired_capabilities=self.dcap, 
+            service_log_path=self.logPath,
+            service_args=['--ignore-ssl-errors=true',
+                          '--debug=true',
+                          '--load-images=false'
+                        ])
         self.driver.set_window_size(bwidth,bheight)
 
     def __del__(self):
