@@ -25,7 +25,7 @@ from bs4 import BeautifulSoup
 from multiprocessing import Pool
 
 # what else but mongo for safe keeping
-from connection import MongoConn
+import connection as c
 
 '''Handling timeouts'''
 
@@ -89,7 +89,10 @@ def getArticles(target):
     return articles
 
 def _defineSel(selector):
-    return [s.strip() for s in selector.split('!') if s != '']
+    if '!' in selector:
+        return [s.strip() for s in selector.split('!') if s != '']
+    else:
+        return selector
 
 
 def _getFullURL(url):
@@ -155,8 +158,10 @@ def getArticleData(articles_pkg):
         if content_soup != []:
             try:
                 for c in content_soup:
-
-                    hl = c.attrs[hlSel[0]] if len(hlSel) < 2 else c.select(hlSel[0])[0].attrs[hlSel[1]]
+                    if type(hlSel) == list:
+                        hl = c.attrs[hlSel[0]] if len(hlSel) < 2 else c.select(hlSel[0])[0].attrs[hlSel[1]]
+                    else:
+                        hl = c.select(hlSel)[0].text
                     ln = c.attrs[linkSel[0]] if len(linkSel) < 2 else c.select(linkSel[0])[0].attrs[linkSel[1]]
                     img = c.attrs[imgSel[0]] if len(imgSel) < 2 else c.select(imgSel[0])[0].attrs[imgSel[1]]
 
@@ -170,7 +175,9 @@ def getArticleData(articles_pkg):
             except Exception as e:
                 print("Could not get contents of these native ads on {0} - {1}: {2}".format(source, article, e))
         else:
-            print("content soup was empty for {} - {}".format(source, article))
+            print("content soup was empty for {} - {}. Saving a screenshot".format(source, article))
+            # save screenshot
+            contentDriver.screenshot(source) 
             continue
     return output
 
@@ -260,11 +267,13 @@ class SessionManager(object):
                  bwidth=1400,
                  bheight=1000,
                  #timeout=30000,
-                 logPath="./logs/ghostdriver_{0}_{1}.log"):
+                 logPath="./logs/ghostdriver_{0}_{1}.log",
+                 ssPath="./screenshots/"):
         super(SessionManager, self).__init__()
         self.userAgent = userAgent
         self.dcap = dcap
         self.logPath = logPath.format(host, str(int(time.time())))
+        self.ssPath=ssPath
         self.dcap['phantomjs.page.settings.userAgent'] = userAgent
         #self.dcap['phantomjs.page.settings.resourceTimeout'] = timeout
         self.driver = webdriver.PhantomJS(
@@ -280,7 +289,7 @@ class SessionManager(object):
         self.driver.quit()
 
     def requestParsed(self, html=None):
-        """Function to input html and get out a BeautifulSoup Parser
+        """Method to input html and get out a BeautifulSoup Parser
 
         Provide the driver.page_source in your SessionManager to get
         back a parser to navigate the HTML returned from your request
@@ -295,6 +304,23 @@ class SessionManager(object):
         self.html = self.driver.page_source
         return BeautifulSoup(self.html, 'html.parser')
 
+    def screenshot(self, source=None):
+        """Method to take a screenshot of whatever page drive is on when it fails
+
+        Provide the driver a source (whatever provider it is getting content from) to SessionManager to 
+        create a path and save a screen shot of curren page to.
+
+        Keyword Arguments:
+                source {[str]} -- String signifying what provider (website) the failed page is on.
+
+        Returns:
+                [screenshot] -- saves image of page to directory ('screenshots')
+        """
+        source = source.split('/')[-1]
+        filename = "{}_{}.png".format(source, str(int(time.time())))
+        savePath = os.path.join(self.ssPath, filename)
+        print('saving screen shot to {}'.format(savePath))
+        return self.driver.save_screenshot(savePath)
 
 
 if __name__ == '__main__':
@@ -302,7 +328,7 @@ if __name__ == '__main__':
     RESOURCES = sys.argv[1]
     WORKERS_MAX = 5
     targets = fetchSiteGuide(RESOURCES)
-    MONGO = MongoConn('theothercontent', 'contents')
+    MONGO = c.MongoConn('theothercontent', 'contents')
 
     #use workers to grab new articles
     ap = Pool(WORKERS_MAX)
@@ -334,7 +360,7 @@ if __name__ == '__main__':
     print(forStorage)
 
     # and store it
-    MONGO.save_records(forStorage)
+    # MONGO.save_records(forStorage)
 
 
 

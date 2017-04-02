@@ -1,5 +1,5 @@
 site,farm,articles_selector,contents_selector,content_hl,content_link,content_img
-http://tmz.com,taboola,div.featured-stories-widget div.news a,"div.trc_rbox_container div[data-item-syndicated=""true""]",a.item-thumbnail-href !title,a.item-thumbnail-href !href,!data-item-thumb
+http://tmz.com,zergnet,div.featured-stories-widget div.news a,div.zergentity,div.zergheadline,a !href,img !src
 http://worldstarhiphop.com/videos/,revcontent,div.slide a,div.rc-row div.rc-item div.rc-item-wrapper,a.rc-cta !title,a.rc-cta !href,div.rc-photo !style
 http://www.infowars.com/,revcontent,section.featured-stories div.article-content h3 a,div.rc-row div.rc-item div.rc-item-wrapper,a.rc-cta !title,a.rc-cta !href,div.rc-photo !style
 http://www.rt.com,taboola,ul.main-promobox__list li div.main-promobox__heading a,"div.trc_rbox_container div[data-item-syndicated=""true""]",a.item-thumbnail-href !title,a.item-thumbnail-href !href,!data-item-thumb
