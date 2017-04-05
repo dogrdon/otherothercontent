@@ -10,9 +10,11 @@ from urllib.parse import urlparse, urljoin, parse_qs
 import requests
 import hashlib
 import datetime
+import logging
 from signal import signal, SIGALRM, alarm # for timeout on phantomjs
 from functools import wraps # ''
 import errno                # ''
+import argparse
 
 # selenium for rendering
 from selenium import webdriver
@@ -26,6 +28,8 @@ from multiprocessing import Pool
 
 # what else but mongo for safe keeping
 import connection as c
+
+
 
 '''Handling timeouts'''
 
@@ -325,7 +329,13 @@ class SessionManager(object):
 
 if __name__ == '__main__':
 
-    RESOURCES = sys.argv[1]
+    '''Args'''
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-t', '--test', action='store_true', help='run in test mode or not')
+    parser.add_argument('-r', '--resource', help='where to get the site crawl list from', required=True)
+    args = parser.parse_args()
+
+    RESOURCES = args.resource
     WORKERS_MAX = 5
     targets = fetchSiteGuide(RESOURCES)
     MONGO = c.MongoConn('theothercontent', 'contents')
@@ -333,7 +343,6 @@ if __name__ == '__main__':
     #use workers to grab new articles
     ap = Pool(WORKERS_MAX)
     articleResults = ap.map(getArticles, targets)
-
     ap.close()
 
     # join articles to target output so we have a single package to send for content
@@ -343,11 +352,10 @@ if __name__ == '__main__':
                 target['articles'] = articles[target['site']]
 
 
-
-    ctp = Pool(WORKERS_MAX)
     # now use workers to grab content data from each article
+    ctp = Pool(WORKERS_MAX)
     contentResults = ctp.map(getArticleData, targets)
-
+    ctp.close()
     # now that we have everything, let's remove duplicates before going any further
     forImaging = clearDupes(contentResults)
 
@@ -357,10 +365,11 @@ if __name__ == '__main__':
     # finally wrap up with final details for storing
     forStorage = finalizeRecords(withImages)
 
-    print(forStorage)
+    print(forStorage)   
 
     # and store it
-    # MONGO.save_records(forStorage)
+    if not args.test:
+        MONGO.save_records(forStorage)
 
 
 
