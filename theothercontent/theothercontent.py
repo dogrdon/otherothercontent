@@ -346,28 +346,37 @@ if __name__ == '__main__':
     ap.close()
 
     # join articles to target output so we have a single package to send for content
+    # TODO: Put this in logic above
     for articles in articleResults:
         for target in targets:
             if target['site'] == list(articles.keys())[0]:
                 target['articles'] = articles[target['site']]
 
 
+    # TODO: Store targets to mongo?
+
     # now use workers to grab content data from each article
     ctp = Pool(WORKERS_MAX)
     contentResults = ctp.map(getArticleData, targets)
     ctp.close()
     # now that we have everything, let's remove duplicates before going any further
+    
+    # TODO: Pull and store?
     forImaging = clearDupes(contentResults)
 
     # next lets create a hash for each img location and use that as a filename for the image we'll store, and add the hash on the record
+    
+    #TODO: Pull and Store?
     withImages = downloadImages(contentResults)
 
     # finally wrap up with final details for storing
+    
+    # TODO: Pull and store?
     forStorage = finalizeRecords(withImages)
 
     print(forStorage)   
 
-    # and store it
+    # and store it once more
     if not args.test:
         MONGO.save_records(forStorage)
 
