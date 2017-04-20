@@ -78,11 +78,13 @@ def checkArticleURL(site, link):
 
 #@timeout(60)
 def getArticles(target):
-    print("Getting Articles")
     ARTICLES_MAX = 3
 
     articles = {}
     site = target['site']
+
+    print("Getting Articles for {}".format(site))
+
     host = urlparse(site).netloc
     articleDriver = SessionManager(host=host)
     articleDriver.driver.get(target['site'])
@@ -91,6 +93,17 @@ def getArticles(target):
         target['articles_selector'])[0:ARTICLES_MAX]]
     del articleDriver
     return articles
+
+def enrichTargets(**kwargs):
+    '''join article results to their original targets'''
+    articleResults = kwargs['articleResults']
+    targets = kwargs['targets']
+    for articles in articleResults:
+        for target in targets:
+            if target['site'] == list(articles.keys())[0]:
+                target['articles'] = articles[target['site']]
+    return targets
+
 
 def _defineSel(selector):
     if '!' in selector:
@@ -135,16 +148,17 @@ def _getImgFormat(url, header):
 
 #@timeout(200)
 def getArticleData(articles_pkg):
-    print("Getting Article Content")
+
+    source = articles_pkg['site']
+
+    print("Getting Article Content for {}".format(source))
 
     contents = articles_pkg['contents_selector']
     articles = articles_pkg['articles']
-
     hlSel = _defineSel(articles_pkg['content_hl'])
     imgSel = _defineSel(articles_pkg['content_img'])
     linkSel = _defineSel(articles_pkg['content_link'])
     provider = articles_pkg['farm']
-    source = articles_pkg['site']
     article_host = '{}_article'.format(urlparse(source).netloc)
 
     output = []
@@ -254,6 +268,8 @@ def finalizeRecords(records):
         #get the final url for each link (if redirect)
         r['final_link'] = _getFinalURL(r['link'])
         finalRecords.append(r)
+
+
     return finalRecords
 
     
@@ -346,37 +362,33 @@ if __name__ == '__main__':
     ap.close()
 
     # join articles to target output so we have a single package to send for content
-    # TODO: Put this in logic above
-    for articles in articleResults:
-        for target in targets:
-            if target['site'] == list(articles.keys())[0]:
-                target['articles'] = articles[target['site']]
+    enrichedTargets = enrichTargets(articleResults=articleResults, targets=targets)
 
-
-    # TODO: Store targets to mongo?
+    # TODO: Temp store enrichedTargets
 
     # now use workers to grab content data from each article
     ctp = Pool(WORKERS_MAX)
-    contentResults = ctp.map(getArticleData, targets)
+    contentResults = ctp.map(getArticleData, enrichedTargets)
     ctp.close()
     # now that we have everything, let's remove duplicates before going any further
     
-    # TODO: Pull and store?
+    # TODO: Pull and tmp store?
     forImaging = clearDupes(contentResults)
 
     # next lets create a hash for each img location and use that as a filename for the image we'll store, and add the hash on the record
     
-    #TODO: Pull and Store?
+    #TODO: Pull and tmp store?
     withImages = downloadImages(contentResults)
 
     # finally wrap up with final details for storing
     
-    # TODO: Pull and store?
+    # TODO: Pull and tmp store?
     forStorage = finalizeRecords(withImages)
 
     print(forStorage)   
 
     # and store it once more
+    # TODO: Put this in finalizeRecords
     if not args.test:
         MONGO.save_records(forStorage)
 
