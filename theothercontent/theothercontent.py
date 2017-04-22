@@ -29,7 +29,11 @@ from multiprocessing import Pool
 # what else but mongo for safe keeping
 import connection as c
 
-
+#set up logging
+logdir = './logs/systemlogs'
+logfile = 'toc_{}.log'.format(str(int(time.time())))
+logpath = os.path.join(logdir, logfile)
+logging.basicConfig(filename=logpath, level=logging.INFO, format='%(levelname)s - %(asctime)s - %(message)s')
 
 '''Handling timeouts'''
 
@@ -39,7 +43,7 @@ class TimeoutError(Exception):
 def timeout(wait_time=30, error_message=os.strerror(errno.ETIME)):
     def decorator(f):
         def _make_timeout(signum, frame):
-            print("You timed out: {}".format(error_message))
+            logging.error("You timed out: {}".format(error_message))
 
         def wrapper(*args, **kwargs):
             signal(SIGALRM, _make_timeout)
@@ -83,7 +87,7 @@ def getArticles(target):
     articles = {}
     site = target['site']
 
-    print("Getting Articles for {}".format(site))
+    logging.info("Getting Articles for {}".format(site))
 
     host = urlparse(site).netloc
     articleDriver = SessionManager(host=host)
@@ -92,6 +96,8 @@ def getArticles(target):
     articles[site] = [checkArticleURL(site,i.attrs['href']) for i in soup.select(
         target['articles_selector'])[0:ARTICLES_MAX]]
     del articleDriver
+    if list(articles.values())[0] == []:
+        logging.warning("Received no articles for {}".format(site))
     return articles
 
 def enrichTargets(**kwargs):
@@ -118,13 +124,16 @@ def _getFullURL(url):
     else:
         return url
 
-
+@timeout(60)
 def _getFinalURL(url):
     try:
         res = requests.get(url)
         return res.url
+    except TimeoutError:
+        logging.error("Took longer than a minute to get final url for {}, assuming won't get".format(url))
+        return url
     except Exception as e:
-        print("Something went wrong getting the final URL for {}: {}".format(url, e))
+        logging.error("Something went wrong getting the final URL for {}: {}".format(url, e))
         return url
 
 def _getImgFormat(url, header):
@@ -137,13 +146,13 @@ def _getImgFormat(url, header):
         elif 'gif' in header:
             return '.gif'
         else:
-            print('content-type {} not recognized'.format(header))
+            logging.warning('content-type {} not recognized'.format(header))
     else:
         ext = url.split('.')[-1]
         if ext in possible_formats:
             return '.{}'.format(ext)
         else:
-            print('could not find an extension for {}, have a look, for now leaving it without one.'.format(url))
+            logging.warning('could not find an extension for {}, have a look, for now leaving it without one.'.format(url))
             return ''        
 
 #@timeout(200)
@@ -151,7 +160,7 @@ def getArticleData(articles_pkg):
 
     source = articles_pkg['site']
 
-    print("Getting Article Content for {}".format(source))
+    logging.info("Getting Article Content for {}".format(source))
 
     contents = articles_pkg['contents_selector']
     articles = articles_pkg['articles']
@@ -168,7 +177,7 @@ def getArticleData(articles_pkg):
         try:
             contentDriver.driver.get(article)
         except Exception as e:
-            print("Problem getting: {} - {}. Moving on".format(article, e))
+            logging.error("Problem getting: {} - {}. Moving on".format(article, e))
             continue
         
         soup = contentDriver.requestParsed()
@@ -191,12 +200,14 @@ def getArticleData(articles_pkg):
 
                     output.append({'headline':hl, 'link':ln, 'img':img, "provider":provider, "source":source})
             except Exception as e:
-                print("Could not get contents of these native ads on {0} - {1}: {2}".format(source, article, e))
+                logging.warning("Could not get contents of these native ads on {0} - {1}: {2}".format(source, article, e))
         else:
-            print("content soup was empty for {} - {}. Saving a screenshot".format(source, article))
+            logging.warning("content soup was empty for {} - {}. Saving a screenshot".format(source, article))
             # save screenshot
             contentDriver.screenshot(source) 
             continue
+    if output == []:
+        logging.error('Recieved no content from {}'.format(article_host))
     return output
 
 def clearDupes(content):
@@ -209,12 +220,10 @@ def clearDupes(content):
         content {List of lists} -- A list of lists of dictionaries describing a site and the content returned from it
     '''
     cleanContent = []
-    print(content)
     for c in content:
-        print('incoming dump of {} items from site'.format(str(len(c))))
-        print('removing dupes')
+        logging.info('incoming dump of {} items'.format(str(len(c))))
         deduped = list({i['link']:i for i in c}.values())
-        print('outgoing only {} items'.format(str(len(deduped))))
+        logging.info('outgoing only {} items'.format(str(len(deduped))))
 
         cleanContent.append(deduped)
 
@@ -232,7 +241,7 @@ def downloadImages(content):
     imagedContent = []
     for c in content:
         if c != []:
-            print("Attempting to download {} images from {} via {}".format(str(len(c)), c[0]['provider'], c[0]['source']))
+            logging.info("Attempting to download {} images from {} via {}".format(str(len(c)), c[0]['provider'], c[0]['source']))
             for i in c:
 
                 img_url = i['img']
@@ -240,7 +249,7 @@ def downloadImages(content):
                 try: 
                     r = requests.get(img_url)
                 except Exception as e:
-                    print("Getting images for {} failed: {}".format(img_url, e))
+                    logging.warning("Getting images for {} failed: {}".format(img_url, e))
                 img_format = _getImgFormat(img_url, r.headers.get('Content-Type', ''))
                 path = './imgs/{}{}'.format(img_id, img_format)
                 if r.status_code == 200:
@@ -250,13 +259,13 @@ def downloadImages(content):
                     i['img_file'] = path
 
                 else:
-                    print("count not download image for {}".format(img_url))
+                    logging.warning("count not download image for {}".format(img_url))
                     i['img_file'] = ''
 
                 
                 imagedContent.append(i)
         else:
-            print("Nothing to add here because it didn't get anything from the source.")
+            logging.error("Nothing to add here because it didn't get anything from the source.")
 
     return imagedContent
 
@@ -288,7 +297,7 @@ class SessionManager(object):
                  bwidth=1400,
                  bheight=1000,
                  #timeout=30000,
-                 logPath="./logs/ghostdriver_{0}_{1}.log",
+                 logPath="./logs/phantomlogs/ghostdriver_{0}_{1}.log",
                  ssPath="./screenshots/"):
         super(SessionManager, self).__init__()
         self.userAgent = userAgent
@@ -340,7 +349,7 @@ class SessionManager(object):
         source = source.split('/')[-1]
         filename = "{}_{}.png".format(source, str(int(time.time())))
         savePath = os.path.join(self.ssPath, filename)
-        print('saving screen shot to {}'.format(savePath))
+        logging.info('saving screen shot to {}'.format(savePath))
         return self.driver.save_screenshot(savePath)
 
 
@@ -357,47 +366,52 @@ if __name__ == '__main__':
     targets = fetchSiteGuide(RESOURCES)
     MONGO = c.MongoConn('theothercontent', 'contents')
 
+
     #use workers to grab new articles
+    print("Getting articles...")
     ap = Pool(WORKERS_MAX)
     articleResults = ap.map(getArticles, targets)
     ap.close()
 
     # join articles to target output so we have a single package to send for content
+    print("Enriching...")
     enrichedTargets = enrichTargets(articleResults=articleResults, targets=targets)
 
     # TODO: Temp store enrichedTargets
 
     # now use workers to grab content data from each article
+    print("Getting article data...")
     ctp = Pool(WORKERS_MAX)
     contentResults = ctp.map(getArticleData, enrichedTargets)
     ctp.close()
     # now that we have everything, let's remove duplicates before going any further
     
-    with open('./content_results_before.json', 'w') as f:
-        json.dump(contentResults, f, indent=4)
-
     # TODO: Pull and tmp store?
+    print("Clearing duplicates...")
     forImaging = clearDupes(contentResults)
-
-    with open('./content_results_after.json', 'w') as b:
-        json.dump(forImaging, b, indent=4)
 
     # next lets create a hash for each img location and use that as a filename for the image we'll store, and add the hash on the record
     
     #TODO: Pull and tmp store?
+    print("Downloading Images...")
     withImages = downloadImages(contentResults)
 
     # finally wrap up with final details for storing
     
     # TODO: Pull and tmp store?
+    print("Finishing up...")
     forStorage = finalizeRecords(withImages)
-
-    print(forStorage)   
-
     # and store it once more
     # TODO: Put this in finalizeRecords
+    
     if not args.test:
+        print("Sending to data store")
+        logging.info("Saving {} new records".format(str(len(forStorage))))
         MONGO.save_records(forStorage)
+    else:
+        print("This was just a test, not saving anything.")
+        logging.info("{} new records, but this was just a test so not saving anything".format(str(len(forStorage))))
+
 
 
 
