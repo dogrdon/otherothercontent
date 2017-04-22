@@ -7,4 +7,3 @@ http://www.breitbart.com,taboola,div.featured article.post h2.title a,"div.trc_r
 http://www.ibtimes.com/,revcontent,div.feature div.small div.info h3 a ,div.rc-row div.rc-item div.rc-item-wrapper,a.rc-cta !title,a.rc-cta !href,div.rc-photo !style
 http://www.businessinsider.com/,taboola,div.river h2.feature-post a.title,"div.trc_rbox_container div[data-item-syndicated=""true""]",a.item-thumbnail-href !title,a.item-thumbnail-href !href,!data-item-thumb
 https://downtrend.com/,revcontent,div#main-content article.grid a.center,div.rc-row div.rc-item div.rc-item-wrapper,a.rc-cta !title,a.rc-cta !href,div.rc-photo !style
-http://preventionpulse.com/,revcontent,div.home-content div.home-post a,div.rc-row div.rc-item div.rc-item-wrapper,a.rc-cta !title,a.rc-cta !href,div.rc-photo !style

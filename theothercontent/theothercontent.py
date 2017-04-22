@@ -209,8 +209,9 @@ def clearDupes(content):
         content {List of lists} -- A list of lists of dictionaries describing a site and the content returned from it
     '''
     cleanContent = []
+    print(content)
     for c in content:
-        print('incoming dump of {} items'.format(str(len(c))))
+        print('incoming dump of {} items from site'.format(str(len(c))))
         print('removing dupes')
         deduped = list({i['link']:i for i in c}.values())
         print('outgoing only {} items'.format(str(len(deduped))))
@@ -372,8 +373,14 @@ if __name__ == '__main__':
     ctp.close()
     # now that we have everything, let's remove duplicates before going any further
     
+    with open('./content_results_before.json', 'w') as f:
+        json.dump(contentResults, f, indent=4)
+
     # TODO: Pull and tmp store?
     forImaging = clearDupes(contentResults)
+
+    with open('./content_results_after.json', 'w') as b:
+        json.dump(forImaging, b, indent=4)
 
     # next lets create a hash for each img location and use that as a filename for the image we'll store, and add the hash on the record
     
