@@ -146,7 +146,7 @@ def getArticleData(articles_pkg):
     for article in articles:
         try:
             contentDriver.driver.get(article)
-            time.sleep(5) #as it seems some pages are getting processed too quickly
+            time.sleep(12) #as it seems some pages are getting processed too quickly
         except Exception as e:
             logging.error("Problem getting: {} - {}. Moving on".format(article, e))
             continue
@@ -284,7 +284,7 @@ class SessionManager(object):
             service_args=['--ignore-ssl-errors=true',
                           '--debug=true',
                           '--load-images=false',
-                          '--cookies-file=./cookie_jar/{}_cookie.txt'.format(host)
+                          #'--cookies-file=./cookie_jar/{}_cookie.txt'.format(host)
                         ]
             )
         self.driver.set_window_size(bwidth,bheight)
@@ -340,6 +340,8 @@ if __name__ == '__main__':
     MONGOPORT=args.mongoport
     if MONGOPORT == None:
         MONGOPORT = 27017
+    else:
+        MONGOPORT = int(MONGOPORT)
     WORKERS_MAX = 5
     targets = fetchSiteGuide(RESOURCES)
     MONGO = c.MongoConn('theothercontent', 'contents', port=MONGOPORT)
