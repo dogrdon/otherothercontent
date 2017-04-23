@@ -222,7 +222,7 @@ def downloadImages(content):
                 except Exception as e:
                     logging.warning("Getting images for {} failed: {}".format(img_url, e))
                 img_format = _getImgFormat(img_url, r.headers.get('Content-Type', ''))
-                path = './imgs/{}{}'.format(img_id, img_format)
+                path = '{}{}'.format(img_id, img_format)
                 if r.status_code == 200:
                     with open(path, 'wb') as imgbuffer:
                         for chunk in r:
