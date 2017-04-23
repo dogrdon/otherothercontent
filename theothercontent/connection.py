@@ -8,11 +8,11 @@ from pymongo import MongoClient
 
 class MongoConn(object):
 	"""Mongo Connection interface"""
-	def __init__(self, database, collection):
+	def __init__(self, database, collection, port=27017):
 		super(MongoConn, self).__init__()
 		self.database = database
 		self.collection = collection
-		client = MongoClient()
+		client = MongoClient(port=port)
 		self.db = client[database]
 		self.collection = self.db[collection]
 		

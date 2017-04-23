@@ -333,12 +333,16 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', '--test', action='store_true', help='run in test mode or not')
     parser.add_argument('-r', '--resource', help='where to get the site crawl list from', required=True)
+    parser.add_argument('-mp', '--mongoport', help='Mongo port, if not the default', required=False)
     args = parser.parse_args()
 
     RESOURCES = args.resource
+    MONGOPORT=args.mongoport
+    if MONGOPORT == None:
+        MONGOPORT = 27017
     WORKERS_MAX = 5
     targets = fetchSiteGuide(RESOURCES)
-    MONGO = c.MongoConn('theothercontent', 'contents')
+    MONGO = c.MongoConn('theothercontent', 'contents', port=MONGOPORT)
 
 
     #use workers to grab new articles
