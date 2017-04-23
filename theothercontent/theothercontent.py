@@ -222,12 +222,13 @@ def downloadImages(content):
                 except Exception as e:
                     logging.warning("Getting images for {} failed: {}".format(img_url, e))
                 img_format = _getImgFormat(img_url, r.headers.get('Content-Type', ''))
-                path = '{}{}'.format(img_id, img_format)
+                img_filename = '{}{}'.format(img_id, img_format)
+                path = './imgs/{}'.format(img_filename)
                 if r.status_code == 200:
                     with open(path, 'wb') as imgbuffer:
                         for chunk in r:
                             imgbuffer.write(chunk)
-                    i['img_file'] = path
+                    i['img_file'] = img_filename
 
                 else:
                     logging.warning("count not download image for {}".format(img_url))
@@ -282,8 +283,10 @@ class SessionManager(object):
             service_log_path=self.logPath,
             service_args=['--ignore-ssl-errors=true',
                           '--debug=true',
-                          '--load-images=false'
-                        ])
+                          '--load-images=false',
+                          '--cookies-file=./cookie_jar/{}_cookie.txt'.format(host)
+                        ]
+            )
         self.driver.set_window_size(bwidth,bheight)
 
     def __del__(self):

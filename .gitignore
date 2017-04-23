@@ -11,3 +11,4 @@ screenshots/
 *.json
 tmp_store/
 imgs/
+cookie_jar/
