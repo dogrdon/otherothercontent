@@ -11,9 +11,6 @@ import requests
 import hashlib
 import datetime
 import logging
-from signal import signal, SIGALRM, alarm # for timeout on phantomjs
-from functools import wraps # ''
-import errno                # ''
 import argparse
 
 # selenium for rendering
@@ -34,27 +31,6 @@ logdir = './logs/systemlogs'
 logfile = 'toc_{}.log'.format(str(int(time.time())))
 logpath = os.path.join(logdir, logfile)
 logging.basicConfig(filename=logpath, level=logging.INFO, format='%(levelname)s - %(asctime)s - %(message)s')
-
-'''Handling timeouts'''
-
-class TimeoutError(Exception):
-    pass
-
-def timeout(wait_time=30, error_message=os.strerror(errno.ETIME)):
-    def decorator(f):
-        def _make_timeout(signum, frame):
-            logging.error("You timed out: {}".format(error_message))
-
-        def wrapper(*args, **kwargs):
-            signal(SIGALRM, _make_timeout)
-            alarm(wait_time)
-            try:
-                result = f(*args, **kwargs)
-            finally: 
-                alarm(0)
-            return result
-        return wraps(f)(wrapper)
-    return decorator
 
 
 def fetchSiteGuide(PATHTOSITEGUIDE):
@@ -80,7 +56,6 @@ def checkArticleURL(site, link):
     else:
         return urljoin(site,link)
 
-#@timeout(60)
 def getArticles(target):
     ARTICLES_MAX = 3
 
@@ -124,14 +99,10 @@ def _getFullURL(url):
     else:
         return url
 
-@timeout(60)
 def _getFinalURL(url):
     try:
         res = requests.get(url)
         return res.url
-    except TimeoutError:
-        logging.error("Took longer than a minute to get final url for {}, assuming won't get".format(url))
-        return url
     except Exception as e:
         logging.error("Something went wrong getting the final URL for {}: {}".format(url, e))
         return url
@@ -139,7 +110,7 @@ def _getFinalURL(url):
 def _getImgFormat(url, header):
     possible_formats = ['jpg', 'gif', 'png', 'jpeg']
     if header != '':
-        if 'jpeg' in header:
+        if 'jpeg' in header or 'jpg' in header:
             return '.jpg'
         elif 'png' in header:
             return '.png'
@@ -155,7 +126,6 @@ def _getImgFormat(url, header):
             logging.warning('could not find an extension for {}, have a look, for now leaving it without one.'.format(url))
             return ''        
 
-#@timeout(200)
 def getArticleData(articles_pkg):
 
     source = articles_pkg['site']
