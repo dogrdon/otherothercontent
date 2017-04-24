@@ -12,6 +12,7 @@ import hashlib
 import datetime
 import logging
 import argparse
+from random import shuffle
 
 # selenium for rendering
 from selenium import webdriver
@@ -68,8 +69,9 @@ def getArticles(target):
     articleDriver = SessionManager(host=host)
     articleDriver.driver.get(target['site'])
     soup = articleDriver.requestParsed()
-    articles[site] = [checkArticleURL(site,i.attrs['href']) for i in soup.select(
-        target['articles_selector'])[0:ARTICLES_MAX]]
+    allArticles = soup.select(target['articles_selector'])
+    shuffle(allArticles) #list of articles shuffled so we don't always get same ones on subsequent tries in the same dat
+    articles[site] = [checkArticleURL(site,i.attrs['href']) for i in allArticles[0:ARTICLES_MAX]] 
     del articleDriver
     if list(articles.values())[0] == []:
         logging.warning("Received no articles for {}".format(site))
