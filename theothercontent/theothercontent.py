@@ -58,7 +58,7 @@ def checkArticleURL(site, link):
         return urljoin(site,link)
 
 def getArticles(target):
-    ARTICLES_MAX = 3
+    ARTICLES_MAX = 5
 
     articles = {}
     site = target['site']
