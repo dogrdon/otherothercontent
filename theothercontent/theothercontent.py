@@ -375,8 +375,12 @@ if __name__ == '__main__':
     # next lets create a hash for each img location and use that as a filename for the image we'll store, and add the hash on the record
     
     #TODO: Pull and tmp store?
-    print("Downloading Images...")
-    withImages = downloadImages(contentResults)
+    if not args.test:
+        print("Downloading Images...")
+        withImages = downloadImages(forImaging)
+    else:
+        print("It's a test, not downloading images...")
+        withImages = forImaging
 
     # finally wrap up with final details for storing
     
