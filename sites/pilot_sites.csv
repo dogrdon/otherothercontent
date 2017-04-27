@@ -11,3 +11,4 @@ http://www.huffingtonpost.com/,taboola,div.bn-zone div.card--media-left div.card
 http://www.politico.com/magazine/,outbrain,div#superLatest figure.thumb div.fig-graphic a,li.ob-dynamic-rec-container,span.ob-rec-text,a.ob-dynamic-rec-link !href,img.ob-rec-image !src
 http://www.thedailybeast.com/,outbrain,div.features div.media-block a,li.ob-dynamic-rec-container,span.ob-rec-text,a.ob-dynamic-rec-link !href,img.ob-rec-image !src
 http://www.politico.com/politics,taboola,section.headlines-latest article.story-frag div.summary header h3 a,"div.trc_rbox_container div[data-item-syndicated=""true""]",a.item-thumbnail-href !title,a.item-thumbnail-href !href,!data-item-thumb
+http://www.dailymail.co.uk/,taboola,ul.link-bogr2 li a,"div.trc_rbox_container div[data-item-syndicated=""true""]",a.item-thumbnail-href !title,a.item-thumbnail-href !href,!data-item-thumb
