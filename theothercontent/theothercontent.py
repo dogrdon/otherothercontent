@@ -148,7 +148,7 @@ def getArticleData(articles_pkg):
     for article in articles:
         try:
             contentDriver.driver.get(article)
-            time.sleep(32) #as it seems some pages are getting processed too quickly
+            time.sleep(42) #as it seems some pages are getting processed too quickly
         except Exception as e:
             logging.error("Problem getting: {} - {}. Moving on".format(article, e))
             continue
@@ -199,7 +199,6 @@ def clearDupes(content):
         logging.info('outgoing only {} items'.format(str(len(deduped))))
 
         cleanContent.append(deduped)
-
     return cleanContent
 
 def downloadImages(content):
@@ -380,7 +379,7 @@ if __name__ == '__main__':
         withImages = downloadImages(forImaging)
     else:
         print("It's a test, not downloading images...")
-        withImages = forImaging
+        withImages = [i for sl in forImaging for i in sl] #flatmap so we don't have an issue
 
     # finally wrap up with final details for storing
     
