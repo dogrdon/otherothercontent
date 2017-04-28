@@ -147,8 +147,9 @@ def getArticleData(articles_pkg):
 
     for article in articles:
         try:
+            contentDriver.driver.implicitly_wait(15)
             contentDriver.driver.get(article)
-            time.sleep(25) #as it seems some pages are getting processed too quickly
+            
         except Exception as e:
             logging.error("Problem getting: {} - {}. Moving on".format(article, e))
             continue
@@ -285,6 +286,7 @@ class SessionManager(object):
             service_args=['--ignore-ssl-errors=true',
                           '--debug=true',
                           '--load-images=false',
+                          '--ssl-protocol=TLSv1'
                           #'--cookies-file=./cookie_jar/{}_cookie.txt'.format(host)
                         ]
             )
