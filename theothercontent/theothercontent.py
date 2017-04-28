@@ -148,7 +148,7 @@ def getArticleData(articles_pkg):
     for article in articles:
         try:
             contentDriver.driver.get(article)
-            time.sleep(42) #as it seems some pages are getting processed too quickly
+            time.sleep(25) #as it seems some pages are getting processed too quickly
         except Exception as e:
             logging.error("Problem getting: {} - {}. Moving on".format(article, e))
             continue
