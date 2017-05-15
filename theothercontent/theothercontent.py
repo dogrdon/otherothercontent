@@ -22,7 +22,7 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from bs4 import BeautifulSoup
 
 # multiprocessing for threads
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 
 # what else but mongo for safe keeping
 import connection as c
@@ -345,7 +345,7 @@ if __name__ == '__main__':
         MONGOPORT = 27017
     else:
         MONGOPORT = int(MONGOPORT)
-    WORKERS_MAX = 2
+    WORKERS_MAX = cpu_count() #just define num of max workers by num of cores on machine
     targets = fetchSiteGuide(RESOURCES)
     MONGO = c.MongoConn('theothercontent', 'contents', port=MONGOPORT)
 
