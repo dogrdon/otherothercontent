@@ -345,7 +345,7 @@ if __name__ == '__main__':
         MONGOPORT = 27017
     else:
         MONGOPORT = int(MONGOPORT)
-    WORKERS_MAX = 5
+    WORKERS_MAX = 2
     targets = fetchSiteGuide(RESOURCES)
     MONGO = c.MongoConn('theothercontent', 'contents', port=MONGOPORT)
 
