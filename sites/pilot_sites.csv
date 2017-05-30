@@ -15,3 +15,6 @@ http://www.dailymail.co.uk/,taboola,ul.link-bogr2 li a,"div.trc_rbox_container d
 http://elitedaily.com/,zergnet,article.nda-article-card header.nda-article-card__titledesc h2 a,div.zergentity,div.zergheadline,a !href,img !src
 http://reductress.com/,taboola,section.popular-posts ul.wpp-list li a.wpp-post-title,"div.trc_rbox_container div[data-item-syndicated=""true""]",a.item-thumbnail-href !title,a.item-thumbnail-href !href,!data-item-thumb
 https://www.washingtonpost.com/,outbrain,div#post-most-rr ul.def-feed li a,li.ob-dynamic-rec-container,span.ob-rec-text,a.ob-dynamic-rec-link !href,img.ob-rec-image !src
+https://www.theatlantic.com/latest/,revcontent,div#main-content div.river-body ul.river li.blog-article ul.metadata li.comments a,div.rc-row div.rc-item div.rc-item-wrapper,a.rc-cta !title,a.rc-cta !href,div.rc-photo !style
+http://thehill.com,outbrain,div.left-sidebar div.view-display-id-articles_just_in div.view-content div.item-list li div.views-field-title span.field-content a,li.ob-dynamic-rec-container,span.ob-rec-text,a.ob-dynamic-rec-link !href,img.ob-rec-image !src
+https://www.therebel.media/news,taboola,section#subpage-blog article.row div.post-content h5 a,"div.trc_rbox_container div[data-item-syndicated=""true""]",a.item-thumbnail-href !title,a.item-thumbnail-href !href,!data-item-thumb
