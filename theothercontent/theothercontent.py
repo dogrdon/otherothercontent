@@ -172,7 +172,7 @@ def getArticleData(articles_pkg):
                         ln = _getFullURL(ln)
 
 
-                    output.append({'headline':hl, 'link':ln, 'img':img, "provider":provider, "source":source})
+                    output.append({'headline':hl, 'link':ln, 'img':img, "provider":provider, "source":source, "orig_article":article})
             except Exception as e:
                 logging.warning("Could not get contents of these native ads on {0} - {1}: {2}".format(source, article, e))
         else:
