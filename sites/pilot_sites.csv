@@ -20,3 +20,4 @@ https://www.therebel.media/news,taboola,section#subpage-blog article.row div.pos
 https://nypost.com/news/,outbrain,div.article-loop article.article header.entry-header h3 a,li.ob-dynamic-rec-container,span.ob-rec-text,a.ob-dynamic-rec-link !href,img.ob-rec-image !src
 http://observer.com/latest/,outbrain,section#loopwrapper article div.entry a,li.ob-dynamic-rec-container,span.ob-rec-text,a.ob-dynamic-rec-link !href,img.ob-rec-image !src
 http://www.nydailynews.com/news,taboola,div.r-left div.rtw a.rt,"div.trc_rbox_container div[data-item-syndicated=""true""]",a.item-thumbnail-href !title,a.item-thumbnail-href !href,!data-item-thumb
+http://gothamist.com/news,taboola,div.search-results-container div.main-item-summary-content h2.entry-title a,"div.trc_rbox_container div[data-item-syndicated=""true""]",a.item-thumbnail-href !title,a.item-thumbnail-href !href,!data-item-thumb
