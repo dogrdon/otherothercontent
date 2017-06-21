@@ -12,7 +12,7 @@ import hashlib
 import datetime
 import logging
 import argparse
-from random import shuffle
+from random import shuffle, choice
 
 # selenium for rendering
 from selenium import webdriver
@@ -32,6 +32,15 @@ logdir = './logs/systemlogs'
 logfile = 'toc_{}.log'.format(str(int(time.time())))
 logpath = os.path.join(logdir, logfile)
 logging.basicConfig(filename=logpath, level=logging.INFO, format='%(levelname)s - %(asctime)s - %(message)s')
+
+
+user_agents = [
+    'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1',
+    'Opera/9.80 (X11; Linux i686; Ubuntu/14.10) Presto/2.12.388 Version/12.16',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A'
+]
 
 
 def fetchSiteGuide(PATHTOSITEGUIDE):
@@ -270,24 +279,20 @@ class SessionManager(object):
                  host='',
                  bwidth=1400,
                  bheight=1000,
-                 #timeout=30000,
                  logPath="./logs/phantomlogs/ghostdriver_{0}_{1}.log",
                  ssPath="./screenshots/"):
         super(SessionManager, self).__init__()
-        self.userAgent = userAgent
+        self.userAgent = choice(user_agents)
         self.dcap = dcap
         self.logPath = logPath.format(host, str(int(time.time())))
         self.ssPath=ssPath
-        self.dcap['phantomjs.page.settings.userAgent'] = userAgent
-        #self.dcap['phantomjs.page.settings.resourceTimeout'] = timeout
+        self.dcap['phantomjs.page.settings.userAgent'] = self.userAgent
         self.driver = webdriver.PhantomJS(
             desired_capabilities=self.dcap, 
             service_log_path=self.logPath,
             service_args=['--ignore-ssl-errors=true',
                           '--debug=true',
                           '--load-images=false',
-                          #'--ssl-protocol=TLSv1'
-                          #'--cookies-file=./cookie_jar/{}_cookie.txt'.format(host)
                         ]
             )
         self.driver.set_window_size(bwidth,bheight)
