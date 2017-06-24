@@ -296,7 +296,7 @@ class SessionManager(object):
             chrome_options = Options()
             chrome_options.add_argument("--headless")
             chrome_options.add_argument("--disable-gpu")
-            chrome_options.add_argument("--remote-debugging-port=9222")
+            # chrome_options.add_argument("--remote-debugging-port=9222") # not working in ubuntu?
             # no image blocking? https://groups.google.com/a/chromium.org/forum/#!topic/headless-dev/0zD4nAyVoCY
             chrome_options.binary_location = chrome_path
             self.driver = webdriver.Chrome(executable_path=os.path.abspath(chromedriver_path), chrome_options=chrome_options)
