@@ -17,6 +17,7 @@ from random import shuffle, choice
 # selenium for rendering
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.webdriver.chrome.options import Options
 
 # beautiful soup for parsing
 from bs4 import BeautifulSoup
@@ -75,7 +76,7 @@ def getArticles(target):
     logging.info("Getting Articles for {}".format(site))
 
     host = urlparse(site).netloc
-    articleDriver = SessionManager(host=host)
+    articleDriver = SessionManager(host=host, chrome=_CHECKCHROME, chrome_path=_CHROME_PATH, chromedriver_path=_CHROMEDRIVER_PATH)
     articleDriver.driver.get(target['site'])
     soup = articleDriver.requestParsed()
     allArticles = soup.select(target['articles_selector'])
@@ -152,7 +153,7 @@ def getArticleData(articles_pkg):
     article_host = '{}_article'.format(urlparse(source).netloc)
 
     output = []
-    contentDriver = SessionManager(host=article_host)
+    contentDriver = SessionManager(host=article_host, chrome=_CHECKCHROME, chrome_path=_CHROME_PATH, chromedriver_path=_CHROMEDRIVER_PATH)
 
     for article in articles:
         try:
@@ -280,22 +281,38 @@ class SessionManager(object):
                  bwidth=1400,
                  bheight=1000,
                  logPath="./logs/phantomlogs/ghostdriver_{0}_{1}.log",
-                 ssPath="./screenshots/"):
+                 ssPath="./screenshots/",
+                 chrome_path=None,
+                 chromedriver_path=None,
+                 chrome=False):
         super(SessionManager, self).__init__()
         self.userAgent = choice(user_agents)
         self.dcap = dcap
         self.logPath = logPath.format(host, str(int(time.time())))
         self.ssPath=ssPath
         self.dcap['phantomjs.page.settings.userAgent'] = self.userAgent
-        self.driver = webdriver.PhantomJS(
-            desired_capabilities=self.dcap, 
-            service_log_path=self.logPath,
-            service_args=['--ignore-ssl-errors=true',
-                          '--debug=true',
-                          '--load-images=false',
-                        ]
-            )
-        self.driver.set_window_size(bwidth,bheight)
+        
+        if chrome:
+            chrome_options = Options()
+            chrome_options.add_argument("--headless")
+            chrome_options.add_argument("--disable-gpu")
+            chrome_options.add_argument("--remote-debugging-port=9222")
+            # no image blocking? https://groups.google.com/a/chromium.org/forum/#!topic/headless-dev/0zD4nAyVoCY
+            chrome_options.binary_location = chrome_path
+            self.driver = webdriver.Chrome(executable_path=os.path.abspath(chromedriver_path), chrome_options=chrome_options)
+
+        else:
+            self.driver = webdriver.PhantomJS(
+                desired_capabilities=self.dcap, 
+                service_log_path=self.logPath,
+                service_args=['--ignore-ssl-errors=true',
+                              '--debug=true',
+                              '--load-images=false',
+                            ]
+                )  
+            self.driver.set_window_size(bwidth,bheight)
+          
+
 
     def __del__(self):
         self.driver.quit()
@@ -342,7 +359,22 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--test', action='store_true', help='run in test mode or not')
     parser.add_argument('-r', '--resource', help='where to get the site crawl list from', required=True)
     parser.add_argument('-mp', '--mongoport', help='Mongo port, if not the default', required=False)
+    parser.add_argument('-uch', '--ubuntuchrome', action='store_true', help='run using chrome on ubuntu instead of PhantomJS')
+    parser.add_argument('-mch', '--macchrome', action='store_true', help='run using chrome on mac instead of PhantomJS')
     args = parser.parse_args()
+
+    if args.macchrome:
+        _CHROME_PATH = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+        _CHROMEDRIVER_PATH = '/usr/local/bin/chromedriver'
+        _CHECKCHROME = True
+    elif args.ubuntuchrome:
+        _CHROME_PATH = '/usr/bin/google-chrome-stable'
+        _CHROMEDRIVER_PATH = '/usr/bin/chromedriver'
+        _CHECKCHROME = True
+    else:
+        _CHROME_PATH = None
+        _CHROMEDRIVER_PATH = None
+        _CHECKCHROME = False
 
     RESOURCES = args.resource
     MONGOPORT=args.mongoport
