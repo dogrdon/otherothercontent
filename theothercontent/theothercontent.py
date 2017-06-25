@@ -182,7 +182,7 @@ def getArticleData(articles_pkg):
                         ln = _getFullURL(ln)
 
 
-                    output.append({'headline':hl, 'link':ln, 'img':img, "provider":provider, "source":source, "orig_article":article})
+                    output.append({'headline':hl, 'link':ln, 'img':img, "provider":provider, "source":source, "orig_article":article, "from_ip":_IPADDR})
             except Exception as e:
                 logging.warning("Could not get contents of these native ads on {0} - {1}: {2}".format(source, article, e))
         else:
@@ -363,6 +363,8 @@ if __name__ == '__main__':
     parser.add_argument('-mch', '--macchrome', action='store_true', help='run using chrome on mac instead of PhantomJS')
     args = parser.parse_args()
 
+    _IPADDR = str(requests.get('http://ipinfo.io/ip').text.strip())
+
     if args.macchrome:
         _CHROME_PATH = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
         _CHROMEDRIVER_PATH = '/usr/local/bin/chromedriver'
@@ -385,6 +387,7 @@ if __name__ == '__main__':
     WORKERS_MAX = cpu_count() #just define num of max workers by num of cores on machine
     targets = fetchSiteGuide(RESOURCES)
     MONGO = c.MongoConn('theothercontent', 'contents', port=MONGOPORT)
+
 
 
     #use workers to grab new articles
