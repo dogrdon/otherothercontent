@@ -18,4 +18,3 @@ https://www.washingtonpost.com/,outbrain,div#post-most-rr ul.def-feed li a,li.ob
 http://thehill.com,outbrain,div.left-sidebar div.view-display-id-articles_just_in div.view-content div.item-list li div.views-field-title span.field-content a,li.ob-dynamic-rec-container,span.ob-rec-text,a.ob-dynamic-rec-link !href,img.ob-rec-image !src
 https://www.therebel.media/news,taboola,section#subpage-blog article.row div.post-content h5 a,"div.trc_rbox_container div[data-item-syndicated=""true""]",a.item-thumbnail-href !title,a.item-thumbnail-href !href,!data-item-thumb
 https://nypost.com/news/,outbrain,div.article-loop article.article header.entry-header h3 a,li.ob-dynamic-rec-container,span.ob-rec-text,a.ob-dynamic-rec-link !href,img.ob-rec-image !src
-http://www.nydailynews.com/news,taboola,div.r-left div.rtw a.rt,"div.trc_rbox_container div[data-item-syndicated=""true""]",a.item-thumbnail-href !title,a.item-thumbnail-href !href,!data-item-thumb
